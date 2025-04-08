@@ -5,8 +5,8 @@ def algorithm1(events, L, delta_t, threshold1, threshold2):
     Local Plane Fitting Algorithm in Python
 
     Parameters:
-        events (np.ndarray): N×3 array, each row is [x, y, t]
-        L (float): Size of the spatial neighborhood (L×L)
+        events (np.ndarray): N × 4 array, each row is [x, y, t, polarity]
+        L (float): Size of the spatial neighborhood (L × L)
         delta_t (float): Time window size
         threshold1 (float): Convergence threshold for fitting error
         threshold2 (float): Threshold for rejecting events with large errors
