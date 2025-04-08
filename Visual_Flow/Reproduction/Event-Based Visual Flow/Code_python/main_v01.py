@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from PIL import Image
 
 def algorithm1(events, L, delta_t, threshold1, threshold2):
     """
@@ -117,14 +119,13 @@ def read_events_from_file(file_path):
     """
     Read event data from a text file.
     
-    Each line should be in the format: [x,y,t,polarity]
-    This function ignores the polarity column and returns only the [x, y, t] values.
+    Each line should be in the format: [x , y, t, polarity]
 
     Parameters:
         file_path (str): Path to the text file
 
     Returns:
-        events (np.ndarray): N×3 NumPy array, each row is [x, y, t]
+        events (np.ndarray): N×3 NumPy array, each row is [x, y, t, polarity]
     """
     events = []
     with open(file_path, 'r') as file:
@@ -140,8 +141,8 @@ def read_events_from_file(file_path):
                     x = float(parts[0].strip())
                     y = float(parts[1].strip())
                     t = float(parts[2].strip())
-                    # polarity = float(parts[3].strip())  # Ignore polarity
-                    events.append([x, y, t])
+                    polarity = float(parts[3].strip())  
+                    events.append([x, y, t, polarity])
                 except ValueError:
                     # Skip the line if conversion fails
                     continue
@@ -168,7 +169,7 @@ def run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2):
     # Print the computed velocities
     print("Computed vx:", vx)
     print("Computed vy:", vy)
-    return vx, vy
+    return events, vx, vy
 
 # Example usage
 if __name__ == "__main__":
@@ -179,4 +180,49 @@ if __name__ == "__main__":
     threshold1 = 1e-5
     threshold2 = 0.05
     
-    [vx, vy] = run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2)
+    [events, vx, vy] = run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2)
+    N = events.shape[0]
+    x = events[:, 0]
+    y = events[:, 1]
+    t = events[:, 2]
+    polarity = events[:, 3]
+
+    print("t_max:", np.max(t))
+    print("t_min:", np.min(t))
+
+    # Image file path
+    image_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Test_Dataset\IROS_Dataset-2018-independent-motion\IROS_Dataset\multiple_objects\2_objs\images\frame_00000000.png"
+    image = Image.open(image_path)
+    height, width = image.size
+
+    # Define the time windows
+    dt = 5
+    start_t = 0.0
+    end_t = start_t + dt
+
+    while end_t < max(t):
+        # Filter events that fall within the defined time window
+        mask = (t >= start_t) & (t < end_t)
+        
+        x_window = x[mask]
+        y_window = y[mask]
+        polarity_window = polarity[mask]
+        vx_window = vx[mask]
+        vy_window = vy[mask]
+
+        # Accumulate events into an image representation
+        event_image = np.zeros((height, width))
+        for xi, yi, pi in zip(x_window, y_window, polarity_window):
+            if 0 <= xi < width and 0 <= yi < height:
+                event_image[yi, xi] += 1 if pi > 0 else -1
+
+        # Update the time window
+        start_t = end_t
+        end_t = start_t + dt
+
+    # Visualize the accumulated events image
+    plt.figure(figsize=(8, 8))
+    plt.imshow(event_image, cmap='gray')
+    plt.title('Accumulated Events Representation')
+    plt.colorbar()
+    plt.show()
