@@ -169,6 +169,9 @@ def run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2):
     # Print the computed velocities
     print("Computed vx:", vx)
     print("Computed vy:", vy)
+    # Save vx and vy to a text file
+    output_velocity_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Output\velocities.txt"
+    np.savetxt(output_velocity_path, np.column_stack((vx, vy)), fmt="%.6f")
     return events, vx, vy
 
 # Example usage
