@@ -187,8 +187,8 @@ if __name__ == "__main__":
     t = events[:, 2]
     polarity = events[:, 3]
 
-    print("t_max:", np.max(t))
-    print("t_min:", np.min(t))
+    # print("t_max:", np.max(t))
+    # print("t_min:", np.min(t))
 
     # Image file path
     image_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Test_Dataset\IROS_Dataset-2018-independent-motion\IROS_Dataset\multiple_objects\2_objs\images\frame_00000000.png"
@@ -226,3 +226,30 @@ if __name__ == "__main__":
     plt.title('Accumulated Events Representation')
     plt.colorbar()
     plt.show()
+
+    # Save the image to a file
+    output_image_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Output\accumulated_events.png"
+    plt.savefig(output_image_path, dpi=300, bbox_inches='tight')  # Save with high resolution
+
+    # Visualize events along with optical flow
+    # Downsampling for better arrow visibility
+    step = 1  # Sampling every 1st point
+
+    xq = x[::step]
+    yq = y[::step]
+    vxq = vx[::step]
+    vyq = vy[::step]
+
+    # Plot the events
+    plt.figure(figsize=(10, 10))
+    plt.imshow(event_image, cmap='gray', alpha=0.5)
+
+    # Add optical flow vectors using quiver
+    plt.quiver(xq, yq, vxq, vyq, color='red', scale=1, headwidth=3, headlength=5, angles='xy', scale_units='xy')
+
+    plt.title('Event Representation with Optical Flow')
+    plt.show()
+
+    # Save the image to a file
+    output_image_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Output\event_with_flow.png"
+    plt.savefig(output_image_path, dpi=300, bbox_inches='tight') 
