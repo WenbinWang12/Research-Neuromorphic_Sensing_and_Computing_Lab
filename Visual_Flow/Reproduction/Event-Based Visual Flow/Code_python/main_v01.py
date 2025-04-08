@@ -7,7 +7,7 @@ def algorithm1(events, L, delta_t, threshold1, threshold2):
     Local Plane Fitting Algorithm in Python
 
     Parameters:
-        events (np.ndarray): N × 4 array, each row is [x, y, t, polarity]
+        events (np.ndarray): N × 4 array, each row is [t, x, y, polarity]
         L (float): Size of the spatial neighborhood (L × L)
         delta_t (float): Time window size
         threshold1 (float): Convergence threshold for fitting error
@@ -23,8 +23,8 @@ def algorithm1(events, L, delta_t, threshold1, threshold2):
     
     for i in range(N):
         e = events[i, :]
-        p = e[0:2]  # Event position [x, y]
-        t = e[2]    # Event time
+        p = e[1:3]  # Event position [x, y]
+        t = e[0]    # Event time
         
         # Get the spatiotemporal neighborhood for the event
         neighborhood = find_neighborhood(events, p, t, L, delta_t)
@@ -57,7 +57,7 @@ def find_neighborhood(events, p, t, L, delta_t):
     Find the spatiotemporal neighborhood for a given event in the events array
 
     Parameters:
-        events (np.ndarray): N×3 array, each row is [x, y, t]
+        events (np.ndarray): N×3 array, each row is [t, x, y]
         p (array-like): Spatial position of the event [x, y]
         t (float): Event time
         L (float): Side length of the spatial neighborhood
@@ -70,9 +70,9 @@ def find_neighborhood(events, p, t, L, delta_t):
     y_min, y_max = p[1] - L/2, p[1] + L/2
     t_min, t_max = t - delta_t, t + delta_t
     
-    mask = ((events[:, 0] >= x_min) & (events[:, 0] <= x_max) &
-            (events[:, 1] >= y_min) & (events[:, 1] <= y_max) &
-            (events[:, 2] >= t_min) & (events[:, 2] <= t_max))
+    mask = ((events[:, 0] >= t_min) & (events[:, 0] <= t_max) &
+            (events[:, 1] >= x_min) & (events[:, 1] <= x_max) &
+            (events[:, 2] >= y_min) & (events[:, 2] <= y_max))
     
     return events[mask, :]
 
@@ -88,8 +88,8 @@ def fit_plane(neighborhood):
         error (float): Fitting error, computed as the norm of (A*plane - b)
     """
     # Construct matrix A and vector b
-    A = np.hstack((neighborhood[:, 0:1], neighborhood[:, 1:2], np.ones((neighborhood.shape[0], 1))))
-    b = neighborhood[:, 2]
+    A = np.hstack((neighborhood[:, 1:2], neighborhood[:, 2:3], np.ones((neighborhood.shape[0], 1))))
+    b = neighborhood[:, 0]
     
     # Perform least squares plane fitting
     plane, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
@@ -103,15 +103,15 @@ def reject_far_events(neighborhood, plane, threshold):
     Reject events with large fitting errors from the fitted plane
 
     Parameters:
-        neighborhood (np.ndarray): Current set of events in the neighborhood, each row is [x, y, t]
+        neighborhood (np.ndarray): Current set of events in the neighborhood, each row is [t, x, y]
         plane (np.ndarray): Fitted plane parameters [A, B, C]
         threshold (float): Error threshold
 
     Returns:
         neighborhood (np.ndarray): Subset of events with fitting error less than the threshold
     """
-    A = np.hstack((neighborhood[:, 0:1], neighborhood[:, 1:2], np.ones((neighborhood.shape[0], 1))))
-    b = neighborhood[:, 2]
+    A = np.hstack((neighborhood[:, 1:2], neighborhood[:, 2:3], np.ones((neighborhood.shape[0], 1))))
+    b = neighborhood[:, 0]
     errors = np.abs(A @ plane - b)
     return neighborhood[errors < threshold, :]
 
@@ -138,11 +138,11 @@ def read_events_from_file(file_path):
             parts = line.split(' ')
             if len(parts) >= 4:
                 try:
-                    x = float(parts[0].strip())
-                    y = float(parts[1].strip())
-                    t = float(parts[2].strip())
+                    t = float(parts[0].strip())
+                    x = float(parts[1].strip())
+                    y = float(parts[2].strip())
                     polarity = float(parts[3].strip())  
-                    events.append([x, y, t, polarity])
+                    events.append([t, x, y, polarity])
                 except ValueError:
                     # Skip the line if conversion fails
                     continue
