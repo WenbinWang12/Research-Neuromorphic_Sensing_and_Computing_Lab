@@ -228,11 +228,12 @@ if __name__ == "__main__":
     plt.imshow(event_image, cmap='gray')
     plt.title('Accumulated Events Representation')
     plt.colorbar()
-    plt.show()
+    
 
     # Save the image to a file
     output_image_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Output\accumulated_events.png"
-    plt.savefig(output_image_path, dpi=300, bbox_inches='tight')  # Save with high resolution
+    plt.savefig(output_image_path)  # Save with high resolution
+    plt.show()
 
     # Visualize events along with optical flow
     # Downsampling for better arrow visibility
@@ -251,8 +252,8 @@ if __name__ == "__main__":
     plt.quiver(xq, yq, vxq, vyq, color='red', scale=1, headwidth=3, headlength=5, angles='xy', scale_units='xy')
 
     plt.title('Event Representation with Optical Flow')
-    plt.show()
 
     # Save the image to a file
     output_image_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Output\event_with_flow.png"
-    plt.savefig(output_image_path, dpi=300, bbox_inches='tight') 
+    plt.savefig(output_image_path)
+    plt.show()
