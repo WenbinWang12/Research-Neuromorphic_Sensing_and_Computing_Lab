@@ -134,7 +134,7 @@ def read_events_from_file(file_path):
             if line.startswith('[') and line.endswith(']'):
                 line = line[1:-1]
             # Split by comma
-            parts = line.split(',')
+            parts = line.split(' ')
             if len(parts) >= 4:
                 try:
                     x = float(parts[0].strip())
@@ -173,10 +173,10 @@ def run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2):
 # Example usage
 if __name__ == "__main__":
     # Set the file path and parameters (modify as needed)
-    file_path = "events.txt"  # Event data file, each line is in the format [x,y,t,polarity]
-    L = 10.0
-    delta_t = 5.0
-    threshold1 = 0.01
-    threshold2 = 5.0
+    file_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Test_Dataset\IROS_Dataset-2018-independent-motion\IROS_Dataset\multiple_objects\2_objs\events.txt"  # Event data file, each line is in the format [x,y,t,polarity]
+    L = 3
+    delta_t = 1e-3
+    threshold1 = 1e-5
+    threshold2 = 0.05
     
-    run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2)
+    [vx, vy] = run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2)
