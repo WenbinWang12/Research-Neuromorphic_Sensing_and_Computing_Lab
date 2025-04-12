@@ -185,9 +185,9 @@ if __name__ == "__main__":
     
     [events, vx, vy] = run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2)
     N = events.shape[0]
-    x = events[:, 0]
-    y = events[:, 1]
-    t = events[:, 2]
+    t = events[:, 0]
+    x = events[:, 1]
+    y = events[:, 2]
     polarity = events[:, 3]
 
     # print("t_max:", np.max(t))
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     height, width = image.size
 
     # Define the time windows
-    dt = 5
+    dt = delta_t
     start_t = 0.0
     end_t = start_t + dt
 
