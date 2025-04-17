@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
-def algorithm1(events, L, delta_t, threshold1, threshold2):
+def algorithm1(events, Lx, Ly, delta_t, threshold1, threshold2):
     """
     Local Plane Fitting Algorithm in Python
 
     Parameters:
         events (np.ndarray): N × 4 array, each row is [t, x, y, polarity]
-        L (float): Size of the spatial neighborhood (L × L)
+        Lx / Ly (float): Size of the spatial neighborhood (Lx × Ly)
         delta_t (float): Time window size
         threshold1 (float): Convergence threshold for fitting error
         threshold2 (float): Threshold for rejecting events with large errors
@@ -27,7 +27,7 @@ def algorithm1(events, L, delta_t, threshold1, threshold2):
         t = e[0]    # Event time
         
         # Get the spatiotemporal neighborhood for the event
-        neighborhood = find_neighborhood(events, p, t, L, delta_t)
+        neighborhood = find_neighborhood(events, p, t, Lx, Ly, delta_t)
         
         # Initialize plane fitting
         prev_plane = np.array([np.inf, np.inf, np.inf])
@@ -52,7 +52,7 @@ def algorithm1(events, L, delta_t, threshold1, threshold2):
             
     return vx, vy
 
-def find_neighborhood(events, p, t, L, delta_t):
+def find_neighborhood(events, p, t, Lx, Ly, delta_t):
     """
     Find the spatiotemporal neighborhood for a given event in the events array
 
@@ -60,14 +60,14 @@ def find_neighborhood(events, p, t, L, delta_t):
         events (np.ndarray): N×3 array, each row is [t, x, y]
         p (array-like): Spatial position of the event [x, y]
         t (float): Event time
-        L (float): Side length of the spatial neighborhood
+        Lx / Ly (float): Side length of the spatial neighborhood
         delta_t (float): Time window size
 
     Returns:
         neighborhood (np.ndarray): Subset of events within [p - L/2, p + L/2] and with time in [t - delta_t, t + delta_t]
     """
-    x_min, x_max = p[0] - L/2, p[0] + L/2
-    y_min, y_max = p[1] - L/2, p[1] + L/2
+    x_min, x_max = p[0] - Lx/2, p[0] + Lx/2
+    y_min, y_max = p[1] - Ly/2, p[1] + Ly/2
     t_min, t_max = t - delta_t, t + delta_t
     
     mask = ((events[:, 0] >= t_min) & (events[:, 0] <= t_max) &
@@ -81,7 +81,7 @@ def fit_plane(neighborhood):
     Fit a plane using least squares: A*x + B*y + C = t
 
     Parameters:
-        neighborhood (np.ndarray): Subset of events in the neighborhood, each row is [x, y, t]
+        neighborhood (np.ndarray): Subset of events in the neighborhood, each row is [t, x, y]
 
     Returns:
         plane (np.ndarray): Fitted plane parameters [A, B, C]
@@ -96,7 +96,17 @@ def fit_plane(neighborhood):
     
     # Compute the fitting error
     error = np.linalg.norm(A @ plane - b)
+    plot_event_with_plane(neighborhood, plane)
     return plane, error
+
+def plot_event_with_plane(neighborhood, plane):
+    """
+    Plot the events and the fitted plane
+    
+    Parameters:
+        neighborhood (np.ndarray): Subset of events in the neighborhood, each row is [t, x, y]
+        plane (np.ndarray): Fitted plane parameters [A, B, C]
+    """
 
 def reject_far_events(neighborhood, plane, threshold):
     """
@@ -148,13 +158,13 @@ def read_events_from_file(file_path):
                     continue
     return np.array(events)
 
-def run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2):
+def run_algorithm_from_file(file_path, Lx, Ly, delta_t, threshold1, threshold2):
     """
     Read event data from a text file, run the plane fitting algorithm to compute velocities, and output the results.
 
     Parameters:
         file_path (str): Path to the event data file
-        L (float): Spatial neighborhood size
+        Lx / Ly (float): Spatial neighborhood size
         delta_t (float): Time window size
         threshold1 (float): Convergence threshold for fitting
         threshold2 (float): Threshold for rejecting events with large errors
@@ -164,7 +174,7 @@ def run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2):
     print(f"Read {events.shape[0]} events from file {file_path}.")
     
     # Run the algorithm
-    vx, vy = algorithm1(events, L, delta_t, threshold1, threshold2)
+    vx, vy = algorithm1(events, Lx, Ly, delta_t, threshold1, threshold2)
     
     # Print the computed velocities
     print("Computed vx:", vx)
@@ -178,12 +188,13 @@ def run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2):
 if __name__ == "__main__":
     # Set the file path and parameters (modify as needed)
     file_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Test_Dataset\IROS_Dataset-2018-independent-motion\IROS_Dataset\multiple_objects\2_objs\events.txt"  # Event data file, each line is in the format [x,y,t,polarity]
-    L = 3
+    Lx = 3
+    Ly = 3
     delta_t = 1e-3
     threshold1 = 1e-5
     threshold2 = 0.05
     
-    [events, vx, vy] = run_algorithm_from_file(file_path, L, delta_t, threshold1, threshold2)
+    [events, vx, vy] = run_algorithm_from_file(file_path, Lx, Ly, delta_t, threshold1, threshold2)
     N = events.shape[0]
     t = events[:, 0]
     x = events[:, 1]
@@ -200,7 +211,7 @@ if __name__ == "__main__":
 
     # Define the time windows
     dt = delta_t
-    start_t = 0.0
+    start_t = t[0]
     end_t = start_t + dt
 
     while end_t < max(t):
@@ -217,7 +228,7 @@ if __name__ == "__main__":
         event_image = np.zeros((height, width))
         for xi, yi, pi in zip(x_window, y_window, polarity_window):
             if 0 <= xi < width and 0 <= yi < height:
-                event_image[yi, xi] += 1 if pi > 0 else -1
+                event_image[int(yi), int(xi)] += 1 if pi > 0 else -1
 
         # Update the time window
         start_t = end_t
