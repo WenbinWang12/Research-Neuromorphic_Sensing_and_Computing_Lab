@@ -96,7 +96,7 @@ def fit_plane(neighborhood):
     
     # Compute the fitting error
     error = np.linalg.norm(A @ plane - b)
-    plot_event_with_plane(neighborhood, plane)
+    # plot_event_with_plane(neighborhood, plane)
     return plane, error
 
 def plot_event_with_plane(neighborhood, plane):
@@ -124,7 +124,7 @@ def plot_event_with_plane(neighborhood, plane):
     Z = plane[0] * X + plane[1] * Y + plane[2]
     
     # Plot the fitted plane surface
-    ax.plot_surface(X, Y, Z, alpha=0.5, color='gray', label='Fitted Plane')
+    ax.plot_surface(X, Y, Z, alpha=1.0, color='gray', label='Fitted Plane')
     
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
@@ -214,8 +214,8 @@ def run_algorithm_from_file(file_path, Lx, Ly, delta_t, threshold1, threshold2):
 if __name__ == "__main__":
     # Set the file path and parameters (modify as needed)
     file_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Test_Dataset\IROS_Dataset-2018-independent-motion\IROS_Dataset\multiple_objects\2_objs\events.txt"  # Event data file, each line is in the format [x,y,t,polarity]
-    Lx = 3
-    Ly = 3
+    Lx = 50
+    Ly = 10
     delta_t = 1e-3
     threshold1 = 1e-5
     threshold2 = 0.05
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     height, width = image.size
 
     # Define the time windows
-    dt = delta_t
+    dt = 1e-5
     start_t = t[0]
     end_t = start_t + dt
 
