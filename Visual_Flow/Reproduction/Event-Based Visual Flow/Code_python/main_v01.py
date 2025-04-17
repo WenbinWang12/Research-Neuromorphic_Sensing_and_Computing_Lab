@@ -57,7 +57,7 @@ def find_neighborhood(events, p, t, Lx, Ly, delta_t):
     Find the spatiotemporal neighborhood for a given event in the events array
 
     Parameters:
-        events (np.ndarray): N×3 array, each row is [t, x, y]
+        events (np.ndarray): N × 4 array, each row is [t, x, y, polarity]
         p (array-like): Spatial position of the event [x, y]
         t (float): Event time
         Lx / Ly (float): Side length of the spatial neighborhood
@@ -81,7 +81,7 @@ def fit_plane(neighborhood):
     Fit a plane using least squares: A*x + B*y + C = t
 
     Parameters:
-        neighborhood (np.ndarray): Subset of events in the neighborhood, each row is [t, x, y]
+        neighborhood (np.ndarray): Subset of events in the neighborhood, each row is [t, x, y, polarity]
 
     Returns:
         plane (np.ndarray): Fitted plane parameters [A, B, C]
@@ -104,9 +104,35 @@ def plot_event_with_plane(neighborhood, plane):
     Plot the events and the fitted plane
     
     Parameters:
-        neighborhood (np.ndarray): Subset of events in the neighborhood, each row is [t, x, y]
+        neighborhood (np.ndarray): Subset of events in the neighborhood, each row is [t, x, y, polarity]
         plane (np.ndarray): Fitted plane parameters [A, B, C]
     """
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Plot events
+    # Color code the events based on their polarity
+    colors = ['red' if p > 0 else 'blue' for p in neighborhood[:, 3]]
+    ax.scatter(neighborhood[:, 1], neighborhood[:, 2], neighborhood[:, 0], c=colors, marker='o', s=10, label='Events')
+    
+    # Create a grid to plot the plane
+    x_range = np.linspace(np.min(neighborhood[:, 1]), np.max(neighborhood[:, 1]), 20)
+    y_range = np.linspace(np.min(neighborhood[:, 2]), np.max(neighborhood[:, 2]), 20)
+    X, Y = np.meshgrid(x_range, y_range)
+    
+    # Compute Z values for the plane
+    Z = plane[0] * X + plane[1] * Y + plane[2]
+    
+    # Plot the fitted plane surface
+    ax.plot_surface(X, Y, Z, alpha=0.5, color='gray', label='Fitted Plane')
+    
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Time')
+    plt.title('Events and Fitted Plane')
+    plt.legend()
+    plt.show()
+
 
 def reject_far_events(neighborhood, plane, threshold):
     """
