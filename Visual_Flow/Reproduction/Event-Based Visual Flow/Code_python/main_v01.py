@@ -199,6 +199,9 @@ def run_algorithm_from_file(file_path, Lx, Ly, delta_t, threshold1, threshold2):
     events = read_events_from_file(file_path)
     print(f"Read {events.shape[0]} events from file {file_path}.")
     
+    min_t = np.min(events[:, 0])
+    events[:, 0] -= min_t  # Normalize time to start from 0
+    events[:, 0] *= 1e3  # Convert time to milliseconds
     # Run the algorithm
     vx, vy = algorithm1(events, Lx, Ly, delta_t, threshold1, threshold2)
     
@@ -210,17 +213,19 @@ def run_algorithm_from_file(file_path, Lx, Ly, delta_t, threshold1, threshold2):
     np.savetxt(output_velocity_path, np.column_stack((vx, vy)), fmt="%.6f")
     return events, vx, vy
 
+
 # Example usage
 if __name__ == "__main__":
     # Set the file path and parameters (modify as needed)
     file_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Test_Dataset\IROS_Dataset-2018-independent-motion\IROS_Dataset\multiple_objects\2_objs\events.txt"  # Event data file, each line is in the format [x,y,t,polarity]
     Lx = 50
     Ly = 10
-    delta_t = 1e-3
+    delta_t = 1
     threshold1 = 1e-5
-    threshold2 = 0.05
+    threshold2 = 0.1
     
     [events, vx, vy] = run_algorithm_from_file(file_path, Lx, Ly, delta_t, threshold1, threshold2)
+    
     N = events.shape[0]
     t = events[:, 0]
     x = events[:, 1]
@@ -233,10 +238,11 @@ if __name__ == "__main__":
     # Image file path
     image_path = r"Visual_Flow\Reproduction\Event-Based Visual Flow\Test_Dataset\IROS_Dataset-2018-independent-motion\IROS_Dataset\multiple_objects\2_objs\images\frame_00000000.png"
     image = Image.open(image_path)
-    height, width = image.size
+    width, height = image.size
+
 
     # Define the time windows
-    dt = 1e-5
+    dt = 1
     start_t = t[0]
     end_t = start_t + dt
 
